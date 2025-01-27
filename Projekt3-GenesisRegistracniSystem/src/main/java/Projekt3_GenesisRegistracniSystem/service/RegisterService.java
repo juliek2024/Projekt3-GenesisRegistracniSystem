@@ -55,7 +55,7 @@ public class RegisterService {
         return false;
     }
 
-    public ResponseEntity<String> createUser(@RequestBody User user) throws RegisterUserException {
+    public ResponseEntity<String> createUser(@RequestBody User user) {
         try {
             if (!verifyPersonId(user)) {
                 return new ResponseEntity<>("User creation failed: PersonID vas not successfully validated.", HttpStatus.BAD_REQUEST);
@@ -63,7 +63,7 @@ public class RegisterService {
             if (user.getName().isEmpty() || user.getSurname().isEmpty()) {
                 return new ResponseEntity<>("User creation failed: user's data are incomplete (missing name, surname or personID).", HttpStatus.BAD_REQUEST);
             }
-            String countQuery = "select count(*) from genesisdb.genesisusers where personID = ?";
+            String countQuery = "select count(*) from genesisDB.genesisUsers where personID = ?";
             Integer count = jdbcTemplate.queryForObject(countQuery, Integer.class, user.getPersonID());
             if (count != null && count > 0) {
                 return new ResponseEntity<>("User creation failed: provided PersonID is already used in the 'Genesis database'.", HttpStatus.CONFLICT);
@@ -71,7 +71,7 @@ public class RegisterService {
             if (user.getUuid() == null) {
                 user.setUuid(UUID.randomUUID().toString());
             }
-            String insertSql = "insert into genesisdb.genesisusers (name, surname, personID, uuid) values (?, ?, ?, ?)";
+            String insertSql = "insert into genesisDB.genesisUsers (name, surname, personID, uuid) values (?, ?, ?, ?)";
             jdbcTemplate.update(insertSql, user.getName(), user.getSurname(), user.getPersonID(), user.getUuid());
             return new ResponseEntity<>("User " + user.getName() + " " + user.getSurname() + " was successfully created.", HttpStatus.OK);
         } catch (RegisterUserException e) {
@@ -84,11 +84,11 @@ public class RegisterService {
     }
 
     public User getUserInfo(int id, String detail) throws RegisterUserException {
-        String selectSql = "select ID, Name, Surname from genesisdb.genesisusers where ID = ? ";
+        String selectSql = "select ID, Name, Surname from genesisDB.genesisUsers where ID = ? ";
         if ("true".equalsIgnoreCase(detail)) {
-            selectSql = "select * from genesisdb.genesisusers where ID = ? ";
+            selectSql = "select * from genesisDB.genesisUsers where ID = ? ";
         }
-        User user = null;
+        User user;
         try {
             user = jdbcTemplate.queryForObject(selectSql, new Object[]{id}, new RowMapper<User>() {
                 public User mapRow(ResultSet rs, int rowNum) throws SQLException {
@@ -112,9 +112,9 @@ public class RegisterService {
     }
 
     public List<User> getUsersInfo(String detail) throws Exception {
-        String selectSql = "select ID, Name, Surname from genesisdb.genesisusers";
+        String selectSql = "select ID, Name, Surname from genesisDB.genesisUsers";
         if ("true".equalsIgnoreCase(detail)) {
-            selectSql = "select * from genesisdb.genesisusers";
+            selectSql = "select * from genesisDB.genesisUsers";
         }
         List<User> users;
         try {
@@ -138,7 +138,7 @@ public class RegisterService {
     }
 
     public User amendUserInfo(@RequestBody User user) throws Exception {
-        String numberQuery = "select count(*) from genesisdb.genesisusers where ID = ?";
+        String numberQuery = "select count(*) from genesisDB.genesisUsers where ID = ?";
         int count = jdbcTemplate.queryForObject(numberQuery, Integer.class, user.getId());
         if (count == 0) {
             throw new RegisterUserException("No data were updated: User with provided ID was not found.");
@@ -146,10 +146,10 @@ public class RegisterService {
         if (user.getName().isEmpty() || user.getSurname().isEmpty()) {
             throw new RegisterUserException("User creation failed: Name and Surname cannot be empty.");
         }
-        String updateSql = "update genesisdb.genesisusers set Name = ?, Surname = ? where ID = ? ";
+        String updateSql = "update genesisDB.genesisUsers set Name = ?, Surname = ? where ID = ? ";
         try {
             int updatedCount = jdbcTemplate.update(updateSql, user.getName(), user.getSurname(), user.getId());
-            String selectAmendedSql = "select ID, Name, Surname from genesisdb.genesisusers where ID = ? ";
+            String selectAmendedSql = "select ID, Name, Surname from genesisDB.genesisUsers where ID = ? ";
             User amendedUser = jdbcTemplate.queryForObject(selectAmendedSql, new Object[]{user.getId()}, new RowMapper<User>() {
                 public User mapRow(ResultSet rs, int rowNum) throws SQLException {
                     User user = new User();
@@ -166,7 +166,7 @@ public class RegisterService {
     }
 
     public ResponseEntity<String> deleteUser(@PathVariable("id") int id) throws Exception {
-        String deleteSql = "delete from genesisdb.genesisusers where ID = ?";
+        String deleteSql = "delete from genesisDB.genesisUsers where ID = ?";
         try {
             int deletedCount = jdbcTemplate.update(deleteSql, id);
             if (deletedCount == 0) {
