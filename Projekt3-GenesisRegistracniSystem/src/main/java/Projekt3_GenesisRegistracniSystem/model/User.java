@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class User {
-    private long id;
+    private int id;
     private String name;
     private String surname;
     @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -12,7 +12,7 @@ public class User {
     @JsonInclude(JsonInclude.Include.NON_NULL)
     private String uuid;
 
-    public User(long id, String name, String surname, String personID, String uuid) {
+    public User(int id, String name, String surname, String personID, String uuid) {
         this.id = id;
         this.name = name;
         this.surname = surname;
@@ -27,7 +27,7 @@ public class User {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 
